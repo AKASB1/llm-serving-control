@@ -53,3 +53,7 @@ At minimum:
 8. SLO controller
 9. Kubernetes adapter
 10. policy benchmarks
+
+## Scaffold checkpoint
+
+The in-memory registry and static health-aware routing path are implemented. Metrics ingestion, autoscaling reconciliation, capacity allocation, and live serving adapters remain planned.

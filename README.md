@@ -69,3 +69,7 @@ See [IMPLEMENTATION.md](IMPLEMENTATION.md).
 ## License
 
 MIT
+
+## Available now
+
+The local Go path registers replicas and selects a healthy endpoint by least outstanding requests. Small metrics, SLO, and capacity helpers are included. Run `go test ./...` and `go run ./cmd/control-plane`. Serving backend adapters and Kubernetes control loops are planned.

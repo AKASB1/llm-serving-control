@@ -1,0 +1,1 @@
+{"model": "demo", "routing": "least_outstanding", "min_replicas": 1}
