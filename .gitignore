@@ -1,0 +1,28 @@
+# Go
+bin/
+*.test
+*.out
+coverage.out
+vendor/
+
+# Load generator / analysis
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Runtime / local config
+.env
+.env.*
+!.env.example
+logs/
+tmp/
+outputs/
+loadgen/results/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
