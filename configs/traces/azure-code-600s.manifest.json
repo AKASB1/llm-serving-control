@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "generator": {
+    "name": "traceconv",
+    "version": 1,
+    "params": {
+      "format": "azure",
+      "source": "AzureLLMInferenceTrace_code.csv",
+      "source_sha256": "54e9a6d2a4bd06ba1e060304b900abbc74cbea53de96506e60fe5bb4f2277fb6",
+      "model": "chat-8b",
+      "start_s": 0,
+      "duration_s": 600,
+      "max_context": 16384,
+      "stats": {
+        "Rows": 8819,
+        "Kept": 1482,
+        "Dropped": 0,
+        "Truncated": 0
+      }
+    }
+  },
+  "seed": 0,
+  "requests": 1482,
+  "duration_s": 600,
+  "content_sha256": "a7d075b531a2c9fa6edb0eb310310970a5a2ef04244988cc8f125ad32d1867c0"
+}

@@ -1,0 +1,4 @@
+# Fixture for older vLLM releases (gpu_cache_usage_perc; waiting metric missing).
+vllm:num_requests_running{model_name="m"} 5
+vllm:gpu_cache_usage_perc{model_name="m"} 0.25
+vllm:num_preemptions_total{model_name="m"} 2

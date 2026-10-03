@@ -1,0 +1,234 @@
+{
+  "weights": {
+    "alpha": 1,
+    "beta": 1,
+    "gamma": 1,
+    "delta": 5
+  },
+  "slo": {
+    "default": "interactive",
+    "classes": {
+      "interactive": {
+        "ttft_s": 2,
+        "tpot_s": 0.1
+      },
+      "batch": {
+        "ttft_s": 20,
+        "tpot_s": 0.25
+      }
+    }
+  },
+  "seeds": {
+    "tuning": [
+      101,
+      102,
+      103,
+      104,
+      105
+    ],
+    "evaluation": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "sensitivity": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "quick": [
+      1,
+      2,
+      3
+    ]
+  },
+  "classes_file": "configs/classes.json",
+  "sim": {
+    "duration_s": 0,
+    "drain_horizon_s": 60,
+    "scrape_interval_s": 1,
+    "tick_interval_s": 0.5,
+    "control_interval_s": 5,
+    "fail_delay_s": 0,
+    "connect_timeout_s": 1,
+    "executor_detect_s": 10,
+    "drain_grace_s": 180,
+    "probe_interval_s": 2,
+    "probe_timeout_s": 1,
+    "budget_gpus": 0,
+    "initial": null
+  },
+  "dispatch": {
+    "router_queue_timeout_s": 60,
+    "max_retries": 2
+  },
+  "health": {
+    "consecutive_errors": 3,
+    "base_backoff_s": 5,
+    "max_backoff_s": 60,
+    "probe_interval_s": 2,
+    "probe_timeout_s": 1
+  },
+  "window_s": 30,
+  "peak_utilization": 0.8,
+  "tie_band": 0.01,
+  "capacity_probe": {
+    "requests": 20000,
+    "duration_s": 600,
+    "warmup_s": 120
+  },
+  "mixes": {
+    "short": {
+      "prompt": {
+        "kind": "lognormal",
+        "median": 256,
+        "sigma": 1.0,
+        "min": 8,
+        "max": 4096
+      },
+      "output": {
+        "kind": "lognormal",
+        "median": 128,
+        "sigma": 1.2,
+        "min": 1,
+        "max": 2048
+      },
+      "max_context": 16384
+    },
+    "long": {
+      "prompt": {
+        "kind": "lognormal",
+        "median": 2048,
+        "sigma": 0.7,
+        "min": 128,
+        "max": 12288
+      },
+      "output": {
+        "kind": "lognormal",
+        "median": 256,
+        "sigma": 1.2,
+        "min": 1,
+        "max": 4096
+      },
+      "max_context": 16384
+    }
+  },
+  "tuning": {
+    "configs": 12,
+    "search_seed": 20261001
+  },
+  "families": [
+    {
+      "name": "routing",
+      "baseline": "least_outstanding",
+      "oracles": [
+        "oracle_jsq"
+      ],
+      "policies": [
+        "random",
+        "round_robin",
+        "least_outstanding",
+        "power_of_two",
+        "latency_aware",
+        "queue_aware",
+        "queue_aware_corrected",
+        "capacity_weighted",
+        "oracle_jsq"
+      ]
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "replay-azure-conv",
+      "family": "routing",
+      "duration_s": 300,
+      "mix": "",
+      "budget_gpus": 2,
+      "trace_path": "configs/traces/azure-conv-300s.csv",
+      "models": [
+        {
+          "model": "chat-8b",
+          "class": "a100-8b",
+          "initial": [
+            {
+              "class": "a100-8b",
+              "count": 1
+            },
+            {
+              "class": "v100-8b",
+              "count": 1
+            }
+          ],
+          "min": 2,
+          "max": 2,
+          "load": 0,
+          "arrival": {
+            "kind": "poisson"
+          }
+        }
+      ]
+    },
+    {
+      "id": "replay-azure-code",
+      "family": "routing",
+      "duration_s": 600,
+      "mix": "",
+      "budget_gpus": 2,
+      "trace_path": "configs/traces/azure-code-600s.csv",
+      "models": [
+        {
+          "model": "chat-8b",
+          "class": "a100-8b",
+          "initial": [
+            {
+              "class": "a100-8b",
+              "count": 1
+            },
+            {
+              "class": "v100-8b",
+              "count": 1
+            }
+          ],
+          "min": 2,
+          "max": 2,
+          "load": 0,
+          "arrival": {
+            "kind": "poisson"
+          }
+        }
+      ]
+    }
+  ],
+  "sensitivity": {
+    "scenarios": [],
+    "variants": []
+  },
+  "quick": {
+    "scenarios": [],
+    "duration_scale": 1
+  }
+}

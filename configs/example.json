@@ -1,1 +1,8 @@
-{"model": "demo", "routing": "least_outstanding", "min_replicas": 1}
+{
+  "model": "chat-8b",
+  "routing": {"name": "least_outstanding"},
+  "replicas": [
+    {"id": "local-0", "endpoint": "http://127.0.0.1:18100"},
+    {"id": "local-1", "endpoint": "http://127.0.0.1:18101"}
+  ]
+}

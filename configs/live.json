@@ -1,0 +1,23 @@
+{
+  "listen": "127.0.0.1:18080",
+  "classes_file": "configs/classes.json",
+  "slo": {"default": "interactive", "classes": {"interactive": {"ttft_s": 2, "tpot_s": 0.1}, "batch": {"ttft_s": 20, "tpot_s": 0.25}}},
+  "routing": {"name": "least_outstanding"},
+  "admission": {"name": "none"},
+  "dispatch": {"router_queue_timeout_s": 30, "max_retries": 2},
+  "health": {"consecutive_errors": 3, "base_backoff_s": 5, "max_backoff_s": 60, "probe_interval_s": 1, "probe_timeout_s": 0.5},
+  "metrics_format": "vllm",
+  "intervals": {"tick_s": 0.2, "probe_s": 1, "probe_timeout_s": 0.5, "scrape_s": 1, "control_s": 2},
+  "replicas": [
+    {"id": "mock-0", "model": "chat-8b", "class": "h100-8b", "endpoint": "http://127.0.0.1:18100"},
+    {"id": "mock-1", "model": "chat-8b", "class": "h100-8b", "endpoint": "http://127.0.0.1:18101"}
+  ],
+  "control": {
+    "window_s": 10,
+    "budget_gpus": 3,
+    "scaler": {"name": "threshold_cooldown", "params": {"upper": 6, "lower": 0.5, "step": 1, "cooldown_up_s": 10, "cooldown_down_s": 600}},
+    "models": [{"model": "chat-8b", "class": "h100-8b", "min": 2, "max": 3}]
+  },
+  "executor": {"binary": "outputs/bin/mock-backend", "classes_file": "configs/classes.json", "speedup": 1, "log_dir": "outputs/demo",
+               "ready_timeout_s": 20, "drain_grace_s": 30, "port_base": 18110}
+}

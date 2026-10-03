@@ -1,0 +1,60 @@
+{
+  "label": "simulated, assumed parameters",
+  "mode": "full",
+  "commit": "56abee7ef8584678c2d08ddaa4e6244607f61981",
+  "dirty": false,
+  "config_sha256": "4d1e7af5bb49e97c554ce846221c67c5d5252ddc5309dd57a8757186aa520fbf",
+  "tuned_commit": "a12b0d5b560e737f3ef93107c1f58086f39cdbdf",
+  "tuned_config_sha256": "681fe996ae784b12e1c3a9b95a37dc815404a94e586fc48cd6236183f0987f66",
+  "go_version": "go1.27.1",
+  "platform": "windows/amd64",
+  "hardware": "Intel(R) Core(TM) i9-14900KF, 32 logical CPUs, 96 GB RAM, Windows 11 (build 26100)",
+  "seeds": {
+    "evaluation": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "sensitivity": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "tuning": [
+      101,
+      102,
+      103,
+      104,
+      105
+    ]
+  },
+  "workers": 32,
+  "runs": 360,
+  "default_router": "queue_aware_corrected",
+  "default_scaler": "target_tracking",
+  "capacity_req_per_s": {}
+}

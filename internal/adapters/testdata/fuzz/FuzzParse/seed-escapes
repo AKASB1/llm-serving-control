@@ -1,0 +1,2 @@
+go test fuzz v1
+string("# HELP x y\nx_bucket{le=\"+Inf\",a=\"q\\\"uote\"} NaN 1700000000\n")

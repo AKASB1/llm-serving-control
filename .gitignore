@@ -26,3 +26,17 @@ loadgen/results/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Private planning notes
+*.local.md
+
+# Agent tooling
+.claude/
+
+# Stray go build output in the repository root
+*.exe
+/benchmark
+/control-plane
+/mock-backend
+/tracegen
+/traceconv

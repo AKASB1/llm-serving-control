@@ -1,0 +1,47 @@
+[
+  {
+    "name": "h100-8b", "model": "chat-8b",
+    "gpu": "NVIDIA H100 SXM5 80GB", "gpus": 1, "gpu_mem_gb": 80, "mem_bw_gb_s": 3350, "peak_tflops": 989,
+    "params_b": 8.03, "bytes_per_param": 2, "kv_bytes_per_token": 131072,
+    "eff_mem_bw": 0.7, "eff_flops": 0.5, "tp_efficiency": 1, "mem_util": 0.9, "activation_reserve_gb": 2,
+    "iter_overhead_ms": 4, "per_seq_overhead_us": 20,
+    "max_num_seqs": 128, "max_batched_tokens": 2048, "max_model_len": 16384,
+    "provision_s": 30, "load_s": 60
+  },
+  {
+    "name": "a100-8b", "model": "chat-8b",
+    "gpu": "NVIDIA A100 SXM4 80GB", "gpus": 1, "gpu_mem_gb": 80, "mem_bw_gb_s": 2039, "peak_tflops": 312,
+    "params_b": 8.03, "bytes_per_param": 2, "kv_bytes_per_token": 131072,
+    "eff_mem_bw": 0.7, "eff_flops": 0.5, "tp_efficiency": 1, "mem_util": 0.9, "activation_reserve_gb": 2,
+    "iter_overhead_ms": 4, "per_seq_overhead_us": 20,
+    "max_num_seqs": 128, "max_batched_tokens": 2048, "max_model_len": 16384,
+    "provision_s": 30, "load_s": 60
+  },
+  {
+    "name": "v100-8b", "model": "chat-8b",
+    "gpu": "NVIDIA V100 SXM2 32GB", "gpus": 1, "gpu_mem_gb": 32, "mem_bw_gb_s": 900, "peak_tflops": 125,
+    "params_b": 8.03, "bytes_per_param": 2, "kv_bytes_per_token": 131072,
+    "eff_mem_bw": 0.7, "eff_flops": 0.5, "tp_efficiency": 1, "mem_util": 0.9, "activation_reserve_gb": 2,
+    "iter_overhead_ms": 6, "per_seq_overhead_us": 30,
+    "max_num_seqs": 128, "max_batched_tokens": 2048, "max_model_len": 16384,
+    "provision_s": 30, "load_s": 75
+  },
+  {
+    "name": "h100-8b-code", "model": "code-8b",
+    "gpu": "NVIDIA H100 SXM5 80GB", "gpus": 1, "gpu_mem_gb": 80, "mem_bw_gb_s": 3350, "peak_tflops": 989,
+    "params_b": 8.03, "bytes_per_param": 2, "kv_bytes_per_token": 131072,
+    "eff_mem_bw": 0.7, "eff_flops": 0.5, "tp_efficiency": 1, "mem_util": 0.9, "activation_reserve_gb": 2,
+    "iter_overhead_ms": 4, "per_seq_overhead_us": 20,
+    "max_num_seqs": 128, "max_batched_tokens": 2048, "max_model_len": 16384,
+    "provision_s": 30, "load_s": 60
+  },
+  {
+    "name": "h100x4-70b", "model": "chat-70b",
+    "gpu": "NVIDIA H100 SXM5 80GB", "gpus": 4, "gpu_mem_gb": 80, "mem_bw_gb_s": 3350, "peak_tflops": 989,
+    "params_b": 70.6, "bytes_per_param": 2, "kv_bytes_per_token": 327680,
+    "eff_mem_bw": 0.7, "eff_flops": 0.5, "tp_efficiency": 0.85, "mem_util": 0.9, "activation_reserve_gb": 2,
+    "iter_overhead_ms": 6, "per_seq_overhead_us": 20,
+    "max_num_seqs": 128, "max_batched_tokens": 2048, "max_model_len": 16384,
+    "provision_s": 30, "load_s": 150
+  }
+]

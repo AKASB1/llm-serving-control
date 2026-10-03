@@ -1,0 +1,40 @@
+{
+  "commit": "a0b761b3dadcb4218f9324f378db062ec009c979",
+  "config_sha256": "910e74e3bffb69da1e3139d609aa52fb6d4a6358b847637c6d10a9fceff9e2d4",
+  "tuning_seeds": [
+    101,
+    102,
+    103,
+    104,
+    105
+  ],
+  "configs_per_policy": 12,
+  "default_router": "prefix_affinity",
+  "default_scaler": "target_tracking",
+  "policies": {
+    "routing/least_outstanding": {
+      "name": "least_outstanding"
+    },
+    "routing/power_of_two": {
+      "name": "power_of_two"
+    },
+    "routing/prefix_affinity": {
+      "name": "prefix_affinity",
+      "params": {
+        "load_factor": 1.332,
+        "virtual_nodes": 62
+      }
+    },
+    "routing/queue_aware_corrected": {
+      "name": "queue_aware_corrected",
+      "params": {
+        "kv_weight": 6.489,
+        "run_weight": 3.325,
+        "sent_weight": 1.133
+      }
+    },
+    "routing/round_robin": {
+      "name": "round_robin"
+    }
+  }
+}

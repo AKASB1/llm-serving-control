@@ -1,0 +1,67 @@
+{
+  "label": "simulated, assumed parameters",
+  "mode": "full",
+  "commit": "bd090de0dbe5798d037b709e01bfcb6f0b4ec19a",
+  "dirty": false,
+  "config_sha256": "bd4a8e74811a0d2bb011672b4726ef18017044368820a7ca7c02cd61f6296110",
+  "tuned_commit": "a12b0d5b560e737f3ef93107c1f58086f39cdbdf",
+  "tuned_config_sha256": "681fe996ae784b12e1c3a9b95a37dc815404a94e586fc48cd6236183f0987f66",
+  "go_version": "go1.27.1",
+  "platform": "windows/amd64",
+  "hardware": "Intel(R) Core(TM) i9-14900KF, 32 logical CPUs, 96 GB RAM, Windows 11 (build 26100)",
+  "seeds": {
+    "evaluation": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "sensitivity": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "tuning": [
+      101,
+      102,
+      103,
+      104,
+      105
+    ]
+  },
+  "workers": 32,
+  "runs": 3080,
+  "default_router": "queue_aware_corrected",
+  "default_scaler": "target_tracking",
+  "capacity_req_per_s": {
+    "a100-8b/short": 8.320833333333333,
+    "h100-8b-code/short": 17.1,
+    "h100-8b/long": 4.09375,
+    "h100-8b/short": 17.029166666666665,
+    "h100x4-70b/short": 8.575,
+    "v100-8b/short": 3.14375
+  }
+}

@@ -1,0 +1,5 @@
+scenario,variant,family,policy,baseline,n,mean_diff_J,ci95,wins,ties,losses,verdict
+p-prefix,base,routing,round_robin,least_outstanding,20,-0.0074519313,0.0015895959,1,19,0,better
+p-prefix,base,routing,power_of_two,least_outstanding,20,0.010726849,0.0015283469,0,17,3,worse
+p-prefix,base,routing,queue_aware_corrected,least_outstanding,20,-0.014434932,0.0010407599,9,11,0,better
+p-prefix,base,routing,prefix_affinity,least_outstanding,20,-0.091978008,0.0024025649,20,0,0,better
