@@ -1,0 +1,13 @@
+scenario,variant,policies,kendall_tau,top_policy,top_policy_base,top_same,verdicts_same,verdicts_total
+r-steady90-short,warmup-x0.5,8,1,queue_aware_corrected,queue_aware_corrected,true,6,7
+r-steady90-short,warmup-x2,8,1,queue_aware_corrected,queue_aware_corrected,true,6,7
+r-steady90-short,scrape-0.25s,8,1,queue_aware_corrected,queue_aware_corrected,true,6,7
+r-steady90-short,scrape-5s,8,0.92857143,queue_aware_corrected,queue_aware_corrected,true,5,7
+r-steady90-short,tail-light,8,0.78571429,queue_aware_corrected,queue_aware_corrected,true,6,7
+r-steady90-short,tail-heavy,8,0.5,least_outstanding,queue_aware_corrected,false,3,7
+s-bursty-short,warmup-x0.5,6,1,static_tuned,static_tuned,true,4,5
+s-bursty-short,warmup-x2,6,0.86666667,static_tuned,static_tuned,true,5,5
+s-bursty-short,scrape-0.25s,6,1,static_tuned,static_tuned,true,4,5
+s-bursty-short,scrape-5s,6,1,static_tuned,static_tuned,true,4,5
+s-bursty-short,tail-light,6,1,static_tuned,static_tuned,true,5,5
+s-bursty-short,tail-heavy,6,0.86666667,target_tracking,static_tuned,false,4,5

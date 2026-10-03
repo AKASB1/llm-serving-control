@@ -1,0 +1,17 @@
+scenario,variant,family,policy,baseline,n,mean_diff_J,ci95,wins,ties,losses,verdict
+replay-azure-conv,base,routing,random,least_outstanding,20,38.510225,1.5309021,0,0,20,worse
+replay-azure-conv,base,routing,round_robin,least_outstanding,20,36.811881,6.8236638e-15,0,0,20,worse
+replay-azure-conv,base,routing,power_of_two,least_outstanding,20,0.10531206,0.070856771,4,4,12,worse
+replay-azure-conv,base,routing,latency_aware,least_outstanding,20,-0.67749003,1.5992962e-16,20,0,0,better
+replay-azure-conv,base,routing,queue_aware,least_outstanding,20,-0.6770705,1.5992962e-16,20,0,0,better
+replay-azure-conv,base,routing,queue_aware_corrected,least_outstanding,20,-0.94160254,0,20,0,0,better
+replay-azure-conv,base,routing,capacity_weighted,least_outstanding,20,-0.50624739,1.0661975e-16,20,0,0,better
+replay-azure-conv,base,routing,oracle_jsq,least_outstanding,20,-1.1533599,0,20,0,0,better
+replay-azure-code,base,routing,random,least_outstanding,20,24.059794,2.3520126,0,0,20,worse
+replay-azure-code,base,routing,round_robin,least_outstanding,20,25.485678,3.4118319e-15,0,0,20,worse
+replay-azure-code,base,routing,power_of_two,least_outstanding,20,0.82039266,0.49945544,3,4,13,worse
+replay-azure-code,base,routing,latency_aware,least_outstanding,20,-5.7161349,8.5295797e-16,20,0,0,better
+replay-azure-code,base,routing,queue_aware,least_outstanding,20,3.172577,0,0,0,20,worse
+replay-azure-code,base,routing,queue_aware_corrected,least_outstanding,20,0.044410769,0,0,20,0,worse
+replay-azure-code,base,routing,capacity_weighted,least_outstanding,20,-3.765228,0,20,0,0,better
+replay-azure-code,base,routing,oracle_jsq,least_outstanding,20,-6.3769083,8.5295797e-16,20,0,0,better

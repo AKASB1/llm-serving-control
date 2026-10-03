@@ -1,0 +1,2 @@
+go test fuzz v1
+string("vllm:num_requests_running{model_name=\"m\"} 3\n")

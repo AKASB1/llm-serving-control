@@ -1,0 +1,25 @@
+# Fixture written from python/sglang/srt/observability/metrics_collector.py (commit 3c4653b); not captured from a live server.
+# HELP sglang:num_running_reqs The number of running requests.
+# TYPE sglang:num_running_reqs gauge
+sglang:num_running_reqs{model_name="m",tp_rank="0"} 20.0
+# HELP sglang:num_queue_reqs The number of requests in the waiting queue.
+# TYPE sglang:num_queue_reqs gauge
+sglang:num_queue_reqs{model_name="m",tp_rank="0"} 4.0
+# HELP sglang:token_usage The token usage.
+# TYPE sglang:token_usage gauge
+sglang:token_usage{model_name="m",tp_rank="0"} 0.61
+# HELP sglang:kv_used_tokens The number of used KV tokens.
+# TYPE sglang:kv_used_tokens gauge
+sglang:kv_used_tokens{model_name="m",tp_rank="0"} 250000
+# HELP sglang:max_total_num_tokens The maximum number of KV tokens.
+# TYPE sglang:max_total_num_tokens gauge
+sglang:max_total_num_tokens{model_name="m",tp_rank="0"} 400000
+# HELP sglang:num_requests_total Number of requests processed.
+# TYPE sglang:num_requests_total counter
+sglang:num_requests_total{model_name="m"} 512
+# HELP sglang:generation_tokens_total Number of generation tokens processed.
+# TYPE sglang:generation_tokens_total counter
+sglang:generation_tokens_total{model_name="m"} 65536
+# HELP sglang:num_retracted_requests_total Number of retracted requests.
+# TYPE sglang:num_retracted_requests_total counter
+sglang:num_retracted_requests_total{model_name="m"} 3

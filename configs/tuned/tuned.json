@@ -1,0 +1,137 @@
+{
+  "commit": "a12b0d5b560e737f3ef93107c1f58086f39cdbdf",
+  "config_sha256": "681fe996ae784b12e1c3a9b95a37dc815404a94e586fc48cd6236183f0987f66",
+  "tuning_seeds": [
+    101,
+    102,
+    103,
+    104,
+    105
+  ],
+  "configs_per_policy": 12,
+  "default_router": "queue_aware_corrected",
+  "default_scaler": "target_tracking",
+  "policies": {
+    "capacity/marginal_gain": {
+      "name": "marginal_gain",
+      "params": {
+        "min_gain": 0,
+        "prior_service_s": 15.869,
+        "wait_fraction": 0.55
+      }
+    },
+    "capacity/proportional_demand": {
+      "name": "proportional_demand"
+    },
+    "capacity/static_partition": {
+      "name": "static_partition",
+      "params": {
+        "shares": {
+          "chat-70b": 0.368,
+          "chat-8b": 0.35,
+          "code-8b": 0.282
+        }
+      }
+    },
+    "overload/none": {
+      "name": "none"
+    },
+    "overload/predicted_ttft_shed": {
+      "name": "predicted_ttft_shed",
+      "params": {
+        "default_factor": 1.371,
+        "factors": {
+          "batch": 0.151,
+          "interactive": 1.371
+        },
+        "prefill_share": 0.345
+      }
+    },
+    "overload/queue_cap": {
+      "name": "queue_cap",
+      "params": {
+        "max_inflight_per_replica": 90,
+        "max_queue": 95
+      }
+    },
+    "routing/capacity_weighted": {
+      "name": "capacity_weighted",
+      "params": {
+        "prior_weight": 45.225,
+        "sample_weight": 0.589,
+        "slo_gain": 0
+      }
+    },
+    "routing/latency_aware": {
+      "name": "latency_aware",
+      "params": {
+        "explore": 0,
+        "prior_s": 0.175,
+        "tau_s": 44.309
+      }
+    },
+    "routing/least_outstanding": {
+      "name": "least_outstanding"
+    },
+    "routing/oracle_jsq": {
+      "name": "oracle_jsq"
+    },
+    "routing/power_of_two": {
+      "name": "power_of_two"
+    },
+    "routing/queue_aware": {
+      "name": "queue_aware",
+      "params": {
+        "kv_weight": 5.679,
+        "run_weight": 0.659
+      }
+    },
+    "routing/queue_aware_corrected": {
+      "name": "queue_aware_corrected",
+      "params": {
+        "kv_weight": 6.261,
+        "run_weight": 2.336,
+        "sent_weight": 0.363
+      }
+    },
+    "routing/random": {
+      "name": "random"
+    },
+    "routing/round_robin": {
+      "name": "round_robin"
+    },
+    "scaling/predictive": {
+      "name": "predictive"
+    },
+    "scaling/slo_feedback": {
+      "name": "slo_feedback"
+    },
+    "scaling/static": {
+      "name": "static",
+      "params": {
+        "replicas": 11
+      }
+    },
+    "scaling/target_tracking": {
+      "name": "target_tracking",
+      "params": {
+        "max_step_down": 1,
+        "max_step_up": 3,
+        "stabilization_down_s": 239.318,
+        "stabilization_up_s": 31.933,
+        "target": 8.709,
+        "tolerance": 0.25
+      }
+    },
+    "scaling/threshold_cooldown": {
+      "name": "threshold_cooldown",
+      "params": {
+        "cooldown_down_s": 460.33,
+        "cooldown_up_s": 34.34,
+        "lower": 7.074,
+        "step": 2,
+        "upper": 36.432
+      }
+    }
+  }
+}

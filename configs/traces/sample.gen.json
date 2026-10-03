@@ -1,0 +1,16 @@
+{
+  "name": "sample",
+  "duration_s": 100,
+  "streams": [
+    {
+      "model": "chat-8b",
+      "arrival": {"kind": "mmpp", "rates": [20, 5], "mean_sojourn_s": [10, 20]},
+      "prompt": {"kind": "lognormal", "median": 256, "sigma": 1.0, "min": 8, "max": 4096},
+      "output": {"kind": "lognormal", "median": 128, "sigma": 1.2, "min": 1, "max": 2048},
+      "classes": [{"class": "interactive", "share": 0.8}, {"class": "batch", "share": 0.2}],
+      "prefix_groups": 8,
+      "prefix_share": 0.3,
+      "max_context": 8192
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "weights": {"alpha": 1, "beta": 1, "gamma": 1, "delta": 5},
+  "slo": {
+    "default": "interactive",
+    "classes": {
+      "interactive": {"ttft_s": 2, "tpot_s": 0.1},
+      "batch": {"ttft_s": 20, "tpot_s": 0.25}
+    }
+  },
+  "seeds": {
+    "tuning": [101, 102, 103, 104, 105],
+    "evaluation": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+    "sensitivity": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    "quick": [1, 2, 3]
+  },
+  "classes_file": "configs/classes.json",
+  "sim": {
+    "duration_s": 0, "drain_horizon_s": 60, "scrape_interval_s": 1, "tick_interval_s": 0.5, "control_interval_s": 5,
+    "fail_delay_s": 0, "connect_timeout_s": 1, "executor_detect_s": 10, "drain_grace_s": 180,
+    "probe_interval_s": 2, "probe_timeout_s": 1, "budget_gpus": 0, "initial": null
+  },
+  "dispatch": {"router_queue_timeout_s": 60, "max_retries": 2},
+  "health": {"consecutive_errors": 3, "base_backoff_s": 5, "max_backoff_s": 60, "probe_interval_s": 2, "probe_timeout_s": 1},
+  "window_s": 30,
+  "peak_utilization": 0.8,
+  "tie_band": 0.01,
+  "capacity_probe": {"requests": 20000, "duration_s": 600, "warmup_s": 120},
+  "mixes": {
+    "short": {
+      "prompt": {"kind": "lognormal", "median": 256, "sigma": 1.0, "min": 8, "max": 4096},
+      "output": {"kind": "lognormal", "median": 128, "sigma": 1.2, "min": 1, "max": 2048},
+      "max_context": 16384
+    },
+    "long": {
+      "prompt": {"kind": "lognormal", "median": 2048, "sigma": 0.7, "min": 128, "max": 12288},
+      "output": {"kind": "lognormal", "median": 256, "sigma": 1.2, "min": 1, "max": 4096},
+      "max_context": 16384
+    }
+  },
+  "families": [
+    {"name": "routing", "baseline": "least_outstanding", "oracles": ["oracle_jsq"],
+     "policies": ["random", "round_robin", "least_outstanding", "power_of_two", "latency_aware", "queue_aware", "queue_aware_corrected", "capacity_weighted", "oracle_jsq"]},
+    {"name": "scaling", "baseline": "threshold_cooldown", "oracles": ["static_peak_oracle"],
+     "policies": ["static_min", "static_tuned", "static_peak_oracle", "threshold_cooldown", "target_tracking", "slo_feedback", "predictive"]},
+    {"name": "capacity", "baseline": "static_partition", "oracles": [],
+     "policies": ["static_partition", "proportional_demand", "marginal_gain"]},
+    {"name": "overload", "baseline": "none", "oracles": [],
+     "policies": ["none", "queue_cap", "predicted_ttft_shed"]},
+    {"name": "sample", "baseline": "least_outstanding", "oracles": ["oracle_jsq"],
+     "policies": ["random", "round_robin", "least_outstanding", "power_of_two", "latency_aware", "queue_aware", "queue_aware_corrected", "capacity_weighted", "oracle_jsq"]}
+  ],
+  "scenarios": [
+    {"id": "r-steady70-short", "family": "routing", "duration_s": 600, "mix": "short", "budget_gpus": 4,
+     "models": [{"model": "chat-8b", "class": "h100-8b", "initial": [{"class": "h100-8b", "count": 4}], "min": 4, "max": 4,
+                 "load": 0.7, "arrival": {"kind": "poisson"}}]},
+    {"id": "r-steady70-long", "family": "routing", "duration_s": 600, "mix": "long", "budget_gpus": 4,
+     "models": [{"model": "chat-8b", "class": "h100-8b", "initial": [{"class": "h100-8b", "count": 4}], "min": 4, "max": 4,
+                 "load": 0.7, "arrival": {"kind": "poisson"}}]},
+    {"id": "r-steady90-short", "family": "routing", "duration_s": 600, "mix": "short", "budget_gpus": 4,
+     "models": [{"model": "chat-8b", "class": "h100-8b", "initial": [{"class": "h100-8b", "count": 4}], "min": 4, "max": 4,
+                 "load": 0.9, "arrival": {"kind": "poisson"}}]},
+    {"id": "r-steady90-long", "family": "routing", "duration_s": 600, "mix": "long", "budget_gpus": 4,
+     "models": [{"model": "chat-8b", "class": "h100-8b", "initial": [{"class": "h100-8b", "count": 4}], "min": 4, "max": 4,
+                 "load": 0.9, "arrival": {"kind": "poisson"}}]},
+    {"id": "r-bursty-short", "family": "routing", "duration_s": 600, "mix": "short", "budget_gpus": 4,
+     "models": [{"model": "chat-8b", "class": "h100-8b", "initial": [{"class": "h100-8b", "count": 4}], "min": 4, "max": 4,
+                 "load": 0.7, "arrival": {"kind": "mmpp", "rate_multipliers": [2.0, 0.5], "mean_sojourn_s": [15, 30]}}]},
+    {"id": "r-bursty-long", "family": "routing", "duration_s": 600, "mix": "long", "budget_gpus": 4,
+     "models": [{"model": "chat-8b", "class": "h100-8b", "initial": [{"class": "h100-8b", "count": 4}], "min": 4, "max": 4,
+                 "load": 0.7, "arrival": {"kind": "mmpp", "rate_multipliers": [2.0, 0.5], "mean_sojourn_s": [15, 30]}}]},
+    {"id": "r-hetero", "family": "routing", "duration_s": 600, "mix": "short", "budget_gpus": 6,
+     "models": [{"model": "chat-8b", "class": "h100-8b",
+                 "initial": [{"class": "h100-8b", "count": 2}, {"class": "a100-8b", "count": 2}, {"class": "v100-8b", "count": 2}],
+                 "min": 6, "max": 6, "load": 0.8, "arrival": {"kind": "poisson"}}]},
+    {"id": "r-crash", "family": "routing", "duration_s": 600, "mix": "short", "budget_gpus": 4,
+     "crashes": [{"at_s": 300, "replica": "h100-8b-001"}],
+     "models": [{"model": "chat-8b", "class": "h100-8b", "initial": [{"class": "h100-8b", "count": 4}], "min": 4, "max": 4,
+                 "load": 0.7, "arrival": {"kind": "poisson"}}]},
+    {"id": "s-diurnal-short", "family": "scaling", "duration_s": 1800, "mix": "short", "budget_gpus": 16,
+     "models": [{"model": "chat-8b", "class": "h100-8b", "initial": [{"class": "h100-8b", "count": 5}], "min": 1, "max": 16,
+                 "load": 0.7, "load_replicas": 6, "arrival": {"kind": "diurnal", "amplitude": 0.8, "period_s": 1800, "phase": 0.75}}]},
+    {"id": "s-diurnal-long", "family": "scaling", "duration_s": 1800, "mix": "long", "budget_gpus": 16,
+     "models": [{"model": "chat-8b", "class": "h100-8b", "initial": [{"class": "h100-8b", "count": 5}], "min": 1, "max": 16,
+                 "load": 0.7, "load_replicas": 6, "arrival": {"kind": "diurnal", "amplitude": 0.8, "period_s": 1800, "phase": 0.75}}]},
+    {"id": "s-bursty-short", "family": "scaling", "duration_s": 1800, "mix": "short", "budget_gpus": 16,
+     "models": [{"model": "chat-8b", "class": "h100-8b", "initial": [{"class": "h100-8b", "count": 5}], "min": 1, "max": 16,
+                 "load": 0.7, "load_replicas": 6, "arrival": {"kind": "mmpp", "rate_multipliers": [2.5, 0.6], "mean_sojourn_s": [120, 240]}}]},
+    {"id": "s-bursty-long", "family": "scaling", "duration_s": 1800, "mix": "long", "budget_gpus": 16,
+     "models": [{"model": "chat-8b", "class": "h100-8b", "initial": [{"class": "h100-8b", "count": 5}], "min": 1, "max": 16,
+                 "load": 0.7, "load_replicas": 6, "arrival": {"kind": "mmpp", "rate_multipliers": [2.5, 0.6], "mean_sojourn_s": [120, 240]}}]},
+    {"id": "c-3model", "family": "capacity", "duration_s": 1800, "mix": "short", "budget_gpus": 20,
+     "models": [
+       {"model": "chat-8b", "class": "h100-8b", "initial": [{"class": "h100-8b", "count": 3}], "min": 1, "max": 12,
+        "load": 0.7, "load_replicas": 4, "arrival": {"kind": "diurnal", "amplitude": 0.8, "period_s": 1800, "phase": 0.75}},
+       {"model": "code-8b", "class": "h100-8b-code", "initial": [{"class": "h100-8b-code", "count": 3}], "min": 1, "max": 12,
+        "load": 0.7, "load_replicas": 3, "arrival": {"kind": "diurnal", "amplitude": 0.8, "period_s": 1800, "phase": 0.0833}},
+       {"model": "chat-70b", "class": "h100x4-70b", "initial": [{"class": "h100x4-70b", "count": 2}], "min": 1, "max": 4,
+        "load": 0.7, "load_replicas": 2, "arrival": {"kind": "diurnal", "amplitude": 0.8, "period_s": 1800, "phase": 0.4167}}
+     ]},
+    {"id": "o-overload", "family": "overload", "duration_s": 900, "mix": "short", "budget_gpus": 4,
+     "models": [{"model": "chat-8b", "class": "h100-8b", "initial": [{"class": "h100-8b", "count": 4}], "min": 4, "max": 4,
+                 "load": 1.0, "arrival": {"kind": "piecewise", "rate_multipliers": [0.6, 1.3, 0.6], "starts_s": [0, 300, 600]},
+                 "slo_classes": [{"class": "interactive", "share": 0.7}, {"class": "batch", "share": 0.3}]}]},
+    {"id": "sample", "family": "sample", "duration_s": 100, "mix": "", "budget_gpus": 2, "trace_path": "configs/traces/sample.csv",
+     "models": [{"model": "chat-8b", "class": "h100-8b", "initial": [{"class": "h100-8b", "count": 2}], "min": 2, "max": 2,
+                 "load": 0, "arrival": {"kind": "poisson"}}]}
+  ],
+  "sensitivity": {
+    "scenarios": ["r-steady90-short", "s-bursty-short"],
+    "variants": [
+      {"id": "warmup-x0.5", "warmup_scale": 0.5},
+      {"id": "warmup-x2", "warmup_scale": 2},
+      {"id": "scrape-0.25s", "scrape_interval_s": 0.25},
+      {"id": "scrape-5s", "scrape_interval_s": 5},
+      {"id": "tail-light", "output_sigma": 0.8},
+      {"id": "tail-heavy", "output_sigma": 1.6}
+    ]
+  },
+  "quick": {"scenarios": ["r-steady70-short", "s-bursty-short", "sample"], "duration_scale": 0.25},
+  "tuning": {"configs": 12, "search_seed": 20261001}
+}
