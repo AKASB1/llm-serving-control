@@ -3,6 +3,7 @@
 //	go run ./cmd/benchmark -tune     # tuning seeds only; writes configs/tuned/
 //	go run ./cmd/benchmark           # full evaluation on the evaluation seeds
 //	go run ./cmd/benchmark -quick    # small smoke subset (outputs/quick)
+//	go run ./cmd/benchmark -reweight configs/reweight.json   # rankings under other weights
 //
 // Every result is simulated with assumed parameters (docs/simulator.md).
 package main
@@ -32,6 +33,7 @@ type options struct {
 	tune     bool
 	workers  int
 	hardware string
+	reweight string
 }
 
 func main() {
@@ -44,6 +46,7 @@ func main() {
 	flag.BoolVar(&o.tune, "tune", false, "tune on the tuning seeds and write the frozen configuration")
 	flag.IntVar(&o.workers, "workers", runtime.NumCPU(), "parallel runs")
 	flag.StringVar(&o.hardware, "hardware", "", "hardware description for the manifest (default: detected)")
+	flag.StringVar(&o.reweight, "reweight", "", "reweighting configuration: recompute rankings from committed per-run metrics (no new runs)")
 	flag.Parse()
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, nil)))
 	if err := run(o); err != nil {
@@ -57,6 +60,17 @@ func run(o options) error {
 	exp, _, err := LoadExperiment(o.config)
 	if err != nil {
 		return err
+	}
+	if o.reweight != "" {
+		out := o.out
+		if out == "" {
+			out = "benchmarks/results-reweight"
+		}
+		if err := runReweight(exp, o.reweight, out); err != nil {
+			return err
+		}
+		slog.Info("reweighting done", "out", out)
+		return nil
 	}
 	env, cfgHash, err := newEnv(exp, o)
 	if err != nil {

@@ -1,0 +1,20 @@
+{
+  "commit": "c7d5f02bb00af6eeaa11596e75d5aec0655d10f5",
+  "dirty": false,
+  "go_version": "go1.27.1",
+  "label": "simulated, assumed parameters; recomputed from committed per-run metrics (no new runs)",
+  "max_rel_diff_J": 6.984002435108455e-8,
+  "reference_weights": {
+    "alpha": 1,
+    "beta": 1,
+    "gamma": 1,
+    "delta": 5
+  },
+  "reproduce_tolerance": 0.000001,
+  "reweight_config": "configs/reweight.json",
+  "reweight_config_sha": "d7e13d2adf5d2c47e0c09e1595e7015eedfd6f30d5a01aa31ce6b48fe2d16da7",
+  "rows": 2120,
+  "runs": "benchmarks/results/runs.csv",
+  "runs_sha256": "46aecdb9cf7e16a2c37ddca562ed374f451e9bb47881f89ec188f40548b2df73",
+  "variant": "base"
+}

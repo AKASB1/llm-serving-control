@@ -108,7 +108,7 @@ All policies share these rules: a name; a JSON parameter object (`{"name": "..."
 
 ### 5.1 Router
 
-Input: the request (`id`, `model`, `prompt_tokens`, optional `max_output_tokens`, `prefix_group`, `slo_class`; not the output length) and a view of the **eligible** replicas (ready, healthy, serving the model; sorted by ID). Each replica view carries: class prior (GPUs, nominal prefill and decode rates, max sequences, KV capacity), router-local in-flight count (fresh), dispatches since the latest snapshot, the latest snapshot (stale), and the replica's SLO error. Oracle policies additionally receive the true current state; they are labelled oracles and cannot run live.
+Input: the request (`id`, `model`, `prompt_tokens`, optional `max_output_tokens`, `prefix_group`, `slo_class`; not the output length) and a view of the **eligible** replicas (ready, healthy, serving the model; sorted by ID). Each replica view carries: class prior (GPUs, nominal prefill and decode rates, max sequences, KV capacity), router-local in-flight count (fresh), dispatches since the latest snapshot, the latest snapshot (stale), and the replica's SLO error. Oracle policies additionally receive the true current state; they are labeled oracles and cannot run live.
 
 Output: dispatch to one replica of the view. When the view is empty the dispatcher queues the request without calling the router. Routers may receive outcome feedback (first token, completion, failure with latencies measured from dispatch).
 
@@ -126,7 +126,7 @@ Input, per model: replica counts by lifecycle state (ready, starting = provision
 
 ### 5.5 Allocator
 
-Input: per model the desired and current counts, minimum and maximum, GPUs per replica, arrival rate, mean service time (E2E minus router and replica queue time: how long a request holds a batch slot), slots per replica (default: the class's maximum running sequences), TTFT target, SLO error; and the GPU budget. Output: granted counts with a reason. Guarantees: minimums are honoured first; no model exceeds its maximum; Σ granted × GPUs ≤ budget whenever the minimums fit; deterministic.
+Input: per model the desired and current counts, minimum and maximum, GPUs per replica, arrival rate, mean service time (E2E minus router and replica queue time: how long a request holds a batch slot), slots per replica (default: the class's maximum running sequences), TTFT target, SLO error; and the GPU budget. Output: granted counts with a reason. Guarantees: minimums are honored first; no model exceeds its maximum; Σ granted × GPUs ≤ budget whenever the minimums fit; deterministic.
 
 ### 5.6 SLO controller
 
@@ -138,7 +138,7 @@ The live control plane accepts the OpenAI-compatible subset `POST /v1/chat/compl
 
 - A request is retried on another replica only if nothing has reached the client yet: the client receives the response headers and body only after the first body byte has arrived from a replica. After that, a replica error truncates the stream and the request is `failed`.
 - Admission rejection → `429 Too Many Requests` with `Retry-After`; router-queue timeout → `503` with `Retry-After`; retries exhausted → `502`. A replica's `4xx` is relayed unchanged and not retried.
-- When the client disconnects, the upstream request is cancelled and the request leaves the dispatcher (no health penalty).
+- When the client disconnects, the upstream request is canceled and the request leaves the dispatcher (no health penalty).
 - Replica state comes from scraping `<endpoint>/metrics` (vLLM or SGLang names, see `internal/adapters`) and from `GET <endpoint>/health` probes.
 - Optional request header `X-SLO-Class` selects the SLO class. The mock backend additionally reads `mock_prompt_tokens` and `mock_output_tokens` from the body.
 - Admin: `GET /admin/replicas`, `POST /admin/replicas` (`{"id","model","endpoint","class"}`), `DELETE /admin/replicas/{id}`; metrics at `GET /metrics` (Prometheus text format, `lsc_*` names).

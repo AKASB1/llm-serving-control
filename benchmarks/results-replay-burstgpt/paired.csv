@@ -1,0 +1,9 @@
+scenario,variant,family,policy,baseline,n,mean_diff_J,ci95,wins,ties,losses,verdict
+replay-burstgpt,base,routing,random,least_outstanding,20,1.2321693,0.14099019,0,0,20,worse
+replay-burstgpt,base,routing,round_robin,least_outstanding,20,0.18920301,0,0,0,20,worse
+replay-burstgpt,base,routing,power_of_two,least_outstanding,20,-0.014869613,0.043876018,9,3,8,no_difference
+replay-burstgpt,base,routing,latency_aware,least_outstanding,20,-0.50321524,0,20,0,0,better
+replay-burstgpt,base,routing,queue_aware,least_outstanding,20,1.0725727,0,0,0,20,worse
+replay-burstgpt,base,routing,queue_aware_corrected,least_outstanding,20,0.17989338,0,0,0,20,worse
+replay-burstgpt,base,routing,capacity_weighted,least_outstanding,20,-0.49865117,7.996481e-17,20,0,0,better
+replay-burstgpt,base,routing,oracle_jsq,least_outstanding,20,-0.44319767,0,20,0,0,better

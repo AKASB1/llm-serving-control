@@ -1,0 +1,42 @@
+vars: {
+  d2-config: {
+    sketch: true
+    layout-engine: elk
+    pad: 24
+  }
+}
+classes: {
+  comp: {style: {fill: "#FCE8D5"; stroke: "#B8611B"; stroke-width: 2; font-size: 20; font-color: "#1F2328"; border-radius: 6}}
+  ext: {style: {fill: "#FFFFFF"; stroke: "#57606A"; stroke-width: 2; font-size: 20; font-color: "#1F2328"}}
+  data: {shape: page; style: {fill: "#FFFFFF"; stroke: "#B8611B"; stroke-width: 2; font-size: 20; font-color: "#1F2328"}}
+  area: {style: {fill: "#FFF8F1"; stroke: "#B8611B"; stroke-width: 2; font-size: 22; font-color: "#1F2328"; bold: true}}
+  flow: {style: {stroke: "#424A53"; stroke-width: 2; font-size: 18; font-color: "#1F2328"}}
+}
+direction: down
+
+traces: "traces (schema v1)\nsynthetic · Azure · BurstGPT" {class: data}
+clients: "HTTP clients" {class: ext}
+
+sim: "simulator\ninternal/sim" {class: comp}
+proxy: "live proxy\ninternal/proxy" {class: comp}
+
+runtime: "shared runtime (internal/controller) and policies" {
+  class: area
+  grid-columns: 2
+  dispatcher: "dispatcher\nadmission · routing\nrouter queue · retries" {class: comp}
+  health: "health tracker\nejection · probes" {class: comp}
+  loop: "control loop\nSLO error · scalers\ncapacity allocator" {class: comp}
+  policies: "policies\nrouting · admission · SLO\nautoscaling · capacity" {class: comp}
+}
+
+engines: "simulated replicas\ninternal/sim/engine\nvirtual time" {class: comp}
+mock: "mock backends\ninternal/sim/live\nreal clock" {class: comp}
+results: "per-run metrics\nbenchmarks/results\n(cmd/benchmark)" {class: data}
+
+traces -> sim: replay {class: flow}
+clients -> proxy: requests {class: flow}
+sim <-> runtime: "events,\ncommands" {class: flow}
+proxy <-> runtime: "events,\ncommands" {class: flow}
+sim -> engines {class: flow}
+proxy -> mock: HTTP {class: flow}
+sim -> results {class: flow}

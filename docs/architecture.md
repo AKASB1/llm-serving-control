@@ -1,8 +1,8 @@
 # Architecture
 
-![framework](figures/framework.png)
+![Architecture: traces drive the simulator and HTTP clients drive the live proxy; both call the shared runtime and the policy packages](figures/architecture.svg)
 
-The control plane decides where each request goes and how many replicas each model gets. It never generates tokens. The same policy and runtime code runs inside the discrete-event simulator (where every benchmark number comes from) and in the live HTTP data plane in front of mock backends (exercised by tests and the demo scripts; never run against real vLLM or SGLang servers).
+The control plane decides where each request goes and how many replicas each model gets. Token generation stays in the serving backend. The same policy and runtime code runs inside the discrete-event simulator and in the live HTTP data plane in front of mock backends. The simulator produces every benchmark number; tests and the demo scripts exercise the live path.
 
 ## Modules
 
@@ -38,16 +38,18 @@ Policy, controller, and metrics packages import neither the simulator nor `net/h
 ## Control loop and data flow
 
 1. **Arrival.** A request reaches the dispatcher. Admission decides admit / queue / reject from the eligible-replica view (rejections are violations).
-2. **Routing.** The router picks one replica from the view: ready, healthy replicas of the model, each with router-local in-flight (fresh), dispatches since the last snapshot, the last scraped snapshot (stale), the class prior, and the replica's SLO error. With no eligible replica the request waits in the per-model FIFO router queue (timeout 60 s by default).
+2. **Routing.** The router picks one replica from the view, which lists the ready, healthy replicas of the model. Each entry carries router-local in-flight (fresh), dispatches since the last snapshot, the last scraped snapshot (stale), the class prior, and the replica's SLO error. With no eligible replica the request waits in the per-model FIFO router queue (timeout 60 s by default).
 3. **Serving.** The replica engine batches the request. Errors before the first token are retried on another replica (at most two retries); after the first token they fail. Consecutive errors or failed probes eject a replica with exponential backoff; it returns on probation.
 4. **Observation.** Every scrape interval each replica publishes a snapshot; completions and violations feed the windowed signals and the SLO controller.
-5. **Control.** Every control interval (5 s) each model's scaler proposes a desired count; the allocator grants counts under the GPU budget (logging the reason when it grants less); the loop provisions replicas or drains them (fewest in-flight first). Draining replicas take no new traffic and finish their work within a grace period.
+5. **Control.** Every control interval (5 s) each model's scaler proposes a desired count. The allocator grants counts under the GPU budget and logs the reason when it grants less. The loop then provisions replicas or drains them (fewest in-flight first). Draining replicas take no new traffic and finish their work within a grace period.
 
 ## How the simulator and the live service share the policy code
 
-The dispatcher, health tracker, loop, and every policy are plain Go objects driven by method calls with explicit times (`Arrive(now, req)`, `Complete(now, id)`, `Snapshot(now, snap)`, `Tick(now)`, `Step(now)`). The simulator calls them at virtual times and executes the returned commands on simulated replicas. The live proxy (`internal/proxy`) calls the same methods at clock times, serialising them with one mutex (the dispatcher is single-threaded by design), forwards `Send` commands over HTTP, and hands scale commands to an `executor.Executor` (`executor.Process` starts mock-backend processes; `sim.Sim` is the simulated executor). The replica engine has no event loop of its own, so the mock backend (`internal/sim/live`) drives it with a real clock. One factory (`controller.NewRouter`, `NewScaler`, `NewAllocator`, `NewAdmission`) builds every policy from `{"name", "params"}` JSON for both paths. Oracle policies refuse to run live.
+The dispatcher, health tracker, loop, and every policy are plain Go objects driven by method calls with explicit times (`Arrive(now, req)`, `Complete(now, id)`, `Snapshot(now, snap)`, `Tick(now)`, `Step(now)`). The simulator calls them at virtual times and executes the returned commands on simulated replicas. The live proxy (`internal/proxy`) calls the same methods at clock times and serializes them with one mutex, because the dispatcher is single-threaded by design. It forwards `Send` commands over HTTP and hands scale commands to an `executor.Executor`: `executor.Process` starts mock-backend processes, and `sim.Sim` is the simulated executor. The replica engine has no event loop of its own, so the mock backend (`internal/sim/live`) drives it with a real clock. One factory (`controller.NewRouter`, `NewScaler`, `NewAllocator`, `NewAdmission`) builds every policy from `{"name", "params"}` JSON for both paths. Oracle policies refuse to run live.
 
-Live request path: client → proxy (admission, routing via the dispatcher) → replica; the client sees headers only after the first body byte arrives, so failures before it are retried on another replica; after it the stream is truncated. Active `/health` probes and passive error counting share the health tracker; `/metrics` of each replica is scraped (vLLM or SGLang names) into the same snapshots the simulator produces.
+Live request path: client → proxy (admission, routing via the dispatcher) → replica. The client sees headers only after the first body byte arrives, so failures before it are retried on another replica. After it, a failure truncates the stream. Active `/health` probes and passive error counting share the health tracker; `/metrics` of each replica is scraped (vLLM or SGLang names) into the same snapshots the simulator produces.
+
+Signals on the live path. The vLLM and SGLang mappings (`internal/adapters/backends.go`) set no busy time (vLLM exposes none), and the mock backend reuses vLLM's metric names, so the scraped snapshots carry `BusyTime` = 0. The window signals `Utilization` and `ServiceRate` (`internal/metrics/signals.go`) are therefore 0 on the live path, while the simulator computes them from simulated busy time. No shipped routing, scaling, capacity, or admission policy reads these two signals. One router reads busy time directly: `capacity_weighted` measures generated tokens per busy second from the scraped `BusyTime` (`internal/routing/advanced.go`). On the live path no measurement passes its check. Its weights therefore stay at the class prior (the class's nominal decode rate), scaled down by the SLO error when `slo_gain` > 0. The mock backend also has no warm-up delay: a started replica is ready as soon as its process answers `/health`.
 
 ## Failure handling
 
@@ -61,4 +63,4 @@ Live request path: client → proxy (admission, routing via the dispatcher) → 
 
 ## Determinism
 
-Every run is single-threaded; randomness comes from named streams; ties break by replica ID; result rows are written in job order, so the benchmark's files are byte-identical for any number of workers (tested).
+Every run is single-threaded, randomness comes from named streams, and ties break by replica ID. Result rows are written in job order, so the benchmark's files are byte-identical for any number of workers (tested).

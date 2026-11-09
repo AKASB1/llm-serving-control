@@ -1,10 +1,10 @@
 # go test -run NONE -bench . -benchmem -count=5 ./internal/routing ./internal/controller
-# real CPU time of the policy code (not simulated); go1.27.1, windows/amd64, Intel Core i9-14900KF (32 logical CPUs), 96 GB RAM, Windows 11 (build 26100); commit bd090de
+# real CPU time of the policy code (not simulated); go1.27.1, windows/amd64, x86-64 desktop CPU (32 logical CPUs), Windows 11; commit bd090de
 # measured while unrelated CPU-heavy jobs shared the machine; scripts/plot_results.py reports the minimum of the 5 runs per case
 goos: windows
 goarch: amd64
 pkg: github.com/AKASB1/llm-serving-control/internal/routing
-cpu: Intel(R) Core(TM) i9-14900KF
+cpu: x86-64 desktop CPU
 BenchmarkRoute/random/replicas=8-32         	143406337	         8.659 ns/op	       0 B/op	       0 allocs/op
 BenchmarkRoute/random/replicas=8-32         	144938966	         8.264 ns/op	       0 B/op	       0 allocs/op
 BenchmarkRoute/random/replicas=8-32         	144982569	         8.398 ns/op	       0 B/op	       0 allocs/op
@@ -158,7 +158,7 @@ BenchmarkRoute/prefix_affinity/replicas=512-32         	   48973	     23898 ns/o
 goos: windows
 goarch: amd64
 pkg: github.com/AKASB1/llm-serving-control/internal/controller
-cpu: Intel(R) Core(TM) i9-14900KF
+cpu: x86-64 desktop CPU
 BenchmarkDispatch/least_outstanding/replicas=8-32         	  606709	      1785 ns/op	    1992 B/op	       9 allocs/op
 BenchmarkDispatch/least_outstanding/replicas=8-32         	  686325	      1757 ns/op	    1992 B/op	       9 allocs/op
 BenchmarkDispatch/least_outstanding/replicas=8-32         	  689547	      1978 ns/op	    1992 B/op	       9 allocs/op

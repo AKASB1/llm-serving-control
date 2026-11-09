@@ -8,7 +8,7 @@
   "tuned_config_sha256": "910e74e3bffb69da1e3139d609aa52fb6d4a6358b847637c6d10a9fceff9e2d4",
   "go_version": "go1.27.1",
   "platform": "windows/amd64",
-  "hardware": "Intel(R) Core(TM) i9-14900KF, 32 logical CPUs, 96 GB RAM, Windows 11 (build 26100)",
+  "hardware": "x86-64 desktop CPU, 32 logical CPUs, Windows 11",
   "seeds": {
     "evaluation": [
       1,

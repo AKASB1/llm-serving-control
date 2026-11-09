@@ -1,0 +1,17 @@
+{
+  "runs": "benchmarks/results/runs.csv",
+  "variant": "base",
+  "weights": [
+    {"name": "default", "alpha": 1, "beta": 1, "gamma": 1, "delta": 5},
+    {"name": "equal", "alpha": 1, "beta": 1, "gamma": 1, "delta": 1},
+    {"name": "ttft_x3", "alpha": 3, "beta": 1, "gamma": 1, "delta": 5},
+    {"name": "tpot_x3", "alpha": 1, "beta": 3, "gamma": 1, "delta": 5},
+    {"name": "gpu_x3", "alpha": 1, "beta": 1, "gamma": 3, "delta": 5},
+    {"name": "violations_x3", "alpha": 1, "beta": 1, "gamma": 1, "delta": 15},
+    {"name": "no_gpu", "alpha": 1, "beta": 1, "gamma": 0, "delta": 5}
+  ],
+  "gpu_cap": {
+    "family": "scaling",
+    "weights": {"name": "no_gpu", "alpha": 1, "beta": 1, "gamma": 0, "delta": 5}
+  }
+}

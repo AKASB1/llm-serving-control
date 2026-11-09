@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "generator": {
+    "name": "traceconv",
+    "version": 1,
+    "params": {
+      "format": "burstgpt",
+      "source": "BurstGPT_1.csv",
+      "source_sha256": "4bb3783693d0a435686fbfc885615d2349bd067239079fa4b749f2e679e12122",
+      "model": "chat-8b",
+      "start_s": 3063600,
+      "duration_s": 600,
+      "max_context": 16384,
+      "stats": {
+        "Rows": 1429737,
+        "Kept": 6403,
+        "Dropped": 18,
+        "Truncated": 0
+      }
+    }
+  },
+  "seed": 0,
+  "requests": 6385,
+  "duration_s": 600,
+  "content_sha256": "600062df434778f2435808b5002b259f6ebea6c3032ec6e13e9bf90fea8740b4"
+}

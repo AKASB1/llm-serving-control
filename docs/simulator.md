@@ -1,6 +1,6 @@
 # Simulator model and assumptions
 
-Every result produced with this simulator is **simulated, with assumed parameters**. The simulator is a model of LLM serving replicas, not a measurement of any real system. Nothing here describes the measured behaviour of vLLM, SGLang, or any GPU.
+The simulator models LLM serving replicas with the assumed parameters listed on this page; none is fitted to measurements of vLLM, SGLang, or a GPU.
 
 Code: `internal/sim` (event loop, lifecycle, failures, accounting) and `internal/sim/engine` (one replica's scheduler). The control plane on top (`internal/controller`, the policies) is the same code the live service uses.
 
@@ -16,9 +16,9 @@ Code: `internal/sim` (event loop, lifecycle, failures, accounting) and `internal
 
 A replica is one instance of one model on a given number of GPUs. State: a FCFS waiting queue and a running set (admission order). Each iteration, at time t:
 
-1. **Decode.** Every running sequence whose prompt is complete decodes one token. If the KV growth would exceed capacity, the **most recently admitted** sequence is preempted by **recompute**: its KV is freed, it goes back to the **head** of the waiting queue, and when re-admitted it must prefill prompt + already generated tokens again. Preemptions are counted.
+1. **Decode.** Every running sequence whose prompt is complete decodes one token. If the KV growth would exceed capacity, the **most recently admitted** sequence is preempted by **recompute**. Its KV is freed and it goes back to the **head** of the waiting queue; when re-admitted, it must prefill prompt + already generated tokens again. Preemptions are counted.
 2. **Continue prefills.** The remaining token budget (`max_batched_tokens − n_decode`) is given, in admission order, to admitted sequences whose prompt is only partly processed (chunked prefill).
-3. **Admit.** While budget remains, `running < max_num_seqs`, and the KV cache can hold the **whole prompt** of the sequence at the head of the waiting queue, that sequence is admitted and receives a prompt chunk. The head is never skipped (FCFS).
+3. **Admit.** The engine admits the sequence at the head of the waiting queue while budget remains, `running < max_num_seqs`, and the KV cache can hold its **whole prompt**. An admitted sequence receives a prompt chunk. The head is never skipped (FCFS).
 4. **Iteration time** `= t_base + c_seq·n_decode + c_ctx·context_tokens + c_pf·prefill_tokens`, where `context_tokens` is the KV held by the scheduled sequences before the iteration.
 5. At the end of the iteration every decoding sequence emits one token; a sequence whose prompt became complete emits its **first token**; later tokens come one per iteration. A sequence that has emitted all `output_tokens` completes and frees its KV.
 
@@ -33,11 +33,11 @@ The engine has no event loop of its own: `Start(now)` returns the next iteration
 
 ### Prefix cache (optional, off in the main experiment)
 
-When a scenario sets `prefix_cache_groups` > 0, each replica keeps an LRU of that many prefix groups. A request whose trace row carries a `prefix_group` shares its first `prefix_tokens` prompt tokens with the group (capped at prompt − 1). On admission (first time only, not after a preemption) the engine looks the group up: on a hit those tokens need no prefill (they still count in the sequence's KV and in the attention context); on a miss the group is inserted when the sequence's prefill completes, evicting the least recently used group. Simplifications: the cached prefix does not occupy separate KV capacity, and recompute after a preemption does not consult the cache. Only `configs/prefix.json` enables it.
+When a scenario sets `prefix_cache_groups` > 0, each replica keeps an LRU of that many prefix groups. A request whose trace row carries a `prefix_group` shares its first `prefix_tokens` prompt tokens with the group (capped at prompt − 1). On admission (first time only, not after a preemption) the engine looks the group up. On a hit those tokens need no prefill, though they still count in the sequence's KV and in the attention context. On a miss the group is inserted when the sequence's prefill completes, evicting the least recently used group. Simplifications: the cached prefix does not occupy separate KV capacity, and recompute after a preemption does not consult the cache. Only `configs/prefix.json` enables it.
 
 ## 3. Lifecycle
 
-`provisioning → loading → ready → draining → terminated`; a crashed replica becomes `failed`. Only `ready` replicas get new traffic. Delays per class: provisioning (node and pod start-up, assumed 30 s) and loading (weight load and warm-up, assumed 60–150 s by model size). Draining finishes in-flight work; after the **grace period** (default 180 s) the remaining requests are aborted and retried elsewhere if they have not produced a token yet (otherwise they fail). A replica drained before it became ready is cancelled immediately. Initial replicas of a scenario are ready at time 0 and paid from time 0.
+`provisioning → loading → ready → draining → terminated`; a crashed replica becomes `failed`. Only `ready` replicas get new traffic. Delays per class: provisioning (node and pod start-up, assumed 30 s) and loading (weight load and warm-up, assumed 60–150 s by model size). Draining finishes in-flight work; after the **grace period** (default 180 s) the remaining requests are aborted and retried elsewhere if they have not produced a token yet (otherwise they fail). A replica drained before it became ready is canceled immediately. Initial replicas of a scenario are ready at time 0 and paid from time 0.
 
 **GPU cost** = Σ GPUs × (end − provisioning start): provisioning, loading, and draining are paid. A crashed replica is paid until the executor notices the crash (default 10 s after it).
 
@@ -47,7 +47,7 @@ The control plane sees replica state only through:
 - **snapshots** published every scrape interval (running, waiting, waiting prompt tokens, KV used/capacity, cumulative preemptions, completions, generated tokens, busy time) — stale by up to one interval;
 - its own **router-local counters** (in-flight per replica, dispatches since the last snapshot), always fresh.
 
-**Stale-snapshot herding is expected and not fixed silently**: a policy that ranks replicas by the scraped queue depth (`queue_aware`) sends every request between two scrapes to the replica that looked emptiest. The mitigation is a separate, documented variant (`queue_aware_corrected`, which adds router-local dispatches since the snapshot). Only oracle policies (`oracle_jsq`) see the true current state, and they are labelled oracles.
+**Stale-snapshot herding is expected and not fixed silently.** A policy that ranks replicas by the scraped queue depth (`queue_aware`) sends every request between two scrapes to the replica that looked emptiest. The mitigation is a separate, documented variant (`queue_aware_corrected`, which adds router-local dispatches since the snapshot). Only oracle policies (`oracle_jsq`) see the true current state, and they are labeled oracles.
 
 ## 5. Failures
 
@@ -93,23 +93,23 @@ Derived values (printed by `go test ./internal/sim -run TestDeriveClasses -v`):
 | v100-8b | 1 | 31.49 ms | 287.0 µs | 0.2081 µs | 257.0 µs | 81939 | 3672 | 1340 |
 | h100x4-70b | 4 | 23.71 ms | 104.0 µs | 0.0411 µs | 84.0 µs | 423583 | 10465 | 3018 |
 
-The linear model sums memory and compute time instead of taking a roofline maximum; with the efficiency factors this is a deliberate, simple approximation of the regression-style iteration models used by serving simulators. It has not been fitted to any measurement.
+The linear model sums memory and compute time instead of taking a roofline maximum. With the efficiency factors it is a deliberate, simple approximation of the regression-style iteration models used by serving simulators. It has not been fitted to any measurement.
 
 ## 7. Calibration protocol (written, not executed)
 
 To fit the parameters to a real deployment (one model, one GPU type, one serving-engine version):
 
-1. **t_base, c_seq, c_ctx**: run decode-only batches (prompts already cached or 1-token prompts) at batch sizes {1, 2, 4, …, max_num_seqs} and context lengths {128, 1k, 4k, 16k}; record per-iteration time from the engine's step timer (or `vllm:inter_token_latency_seconds`); fit `t = t_base + c_seq·n + c_ctx·Σctx` by least squares; report R² and residuals.
+1. **t_base, c_seq, c_ctx**: run decode-only batches (prompts already cached or 1-token prompts) at batch sizes {1, 2, 4, …, max_num_seqs} and context lengths {128, 1k, 4k, 16k}. Record per-iteration time from the engine's step timer (or `vllm:inter_token_latency_seconds`). Fit `t = t_base + c_seq·n + c_ctx·Σctx` by least squares, and report R² and residuals.
 2. **c_pf**: run prefill-only iterations with chunk sizes {256, 512, 1024, 2048}; fit the slope against prefill tokens with the decode terms fixed.
 3. **KV capacity**: read the engine's reported number of KV blocks × block size at start-up; check against `kv_cache_usage_perc` under load.
 4. **Preemption**: drive a long-output workload into KV saturation; compare preemption counts and the preempt-recompute latency penalty against the model.
 5. **Lifecycle delays**: time pod scheduling → container start → weights loaded → first successful health check, 10 repetitions each, cold and warm image cache.
-6. **Validation**: replay a held-out trace at 50 %, 70 %, 90 % load; compare TTFT/TPOT P50/P95 and throughput against the simulator with the fitted parameters; accept when errors are within a stated band (for example 10 % on P50, 20 % on P95).
+6. **Validation**: replay a held-out trace at 50 %, 70 %, 90 % load, and compare TTFT/TPOT P50/P95 and throughput against the simulator with the fitted parameters. Accept when errors are within a stated band (for example 10 % on P50, 20 % on P95).
 
 ## 8. Closed-form check
 
-`internal/sim/pk_test.go`: one replica, batch size one (`max_num_seqs = 1`), Poisson arrivals at ρ ≈ 0.67, lognormal lengths. The replica is then an M/G/1 FCFS queue, and the mean replica queue wait must match Pollaczek-Khinchine, `W_q = λ·E[S²] / (2·(1 − λ·E[S]))`, with E[S] and E[S²] taken from the realized service times. Tolerance: pooled over 10 seeds (≈ 20 000 requests each) within 5 %; every seed within 25 %. (With exponential service times this reduces to the M/M/1 value ρ/(μ − λ).)
+`internal/sim/pk_test.go`: one replica, batch size one (`max_num_seqs = 1`), Poisson arrivals at ρ ≈ 0.67, lognormal lengths. The replica is then an M/G/1 FCFS queue, and the mean replica queue wait must match Pollaczek–Khinchine: `W_q = λ·E[S²] / (2·(1 − λ·E[S]))`. E[S] and E[S²] are taken from the realized service times. Tolerance: pooled over 10 seeds (≈ 20 000 requests each) within 5 %; every seed within 25 %. (With exponential service times this reduces to the M/M/1 value ρ/(μ − λ).)
 
 ## 9. Invariant tests
 
-`internal/sim/sim_test.go` and `internal/sim/engine/engine_test.go`: every request ends in exactly one terminal state (the simulator panics on a second one); time never goes backwards; KV occupancy (used + reserved) never exceeds capacity, checked after every event; GPU-seconds equal the integral of GPUs held by live replicas, computed independently from event-by-event observation; preemption sends the most recently admitted sequence back to the head and it still emits exactly `output_tokens` tokens with one first token; a drained replica receives no new requests and loses none; a crash produces retries before the first token and failures after it; identical inputs give identical records.
+`internal/sim/sim_test.go` and `internal/sim/engine/engine_test.go`: every request ends in exactly one terminal state (the simulator panics on a second one); time never goes backwards; KV occupancy (used + reserved) never exceeds capacity, checked after every event. GPU-seconds equal the integral of GPUs held by live replicas, computed independently from event-by-event observation. Preemption sends the most recently admitted sequence back to the head, and it still emits exactly `output_tokens` tokens with one first token. A drained replica receives no new requests and loses none. A crash produces retries before the first token and failures after it. Identical inputs give identical records.

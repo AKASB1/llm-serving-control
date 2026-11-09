@@ -19,7 +19,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.ticker import FuncFormatter, NullFormatter  # noqa: E402
+from matplotlib.ticker import FuncFormatter, LogLocator, NullFormatter  # noqa: E402
 
 # Reference categorical palette (light): slot 1 blue for policies, slot 2
 # orange for the named baseline; oracles are hollow gray. Text uses ink tokens.
@@ -27,8 +27,8 @@ BLUE, ORANGE, GRAY = "#2a78d6", "#eb6834", "#8a8984"
 INK, INK2, GRID, SURFACE = "#0b0b0b", "#52514e", "#e4e3df", "#fcfcfb"
 
 plt.rcParams.update({
-    "font.size": 8.5, "axes.edgecolor": INK2, "axes.labelcolor": INK, "xtick.color": INK2,
-    "ytick.color": INK, "axes.titlesize": 9, "axes.titleweight": "bold", "figure.facecolor": SURFACE,
+    "font.size": 9.5, "axes.edgecolor": INK2, "axes.labelcolor": INK, "xtick.color": INK2,
+    "ytick.color": INK, "axes.titlesize": 10, "axes.titleweight": "bold", "figure.facecolor": SURFACE,
     "axes.facecolor": SURFACE, "savefig.facecolor": SURFACE, "axes.spines.top": False, "axes.spines.right": False,
 })
 
@@ -72,6 +72,13 @@ def finite(x):
     return x is not None and not math.isnan(x) and not math.isinf(x)
 
 
+def step125(x, down):
+    """The nearest value of the 1-2-5 series at or below (down) or at or above x."""
+    e = math.floor(math.log10(x))
+    series = [m * 10.0 ** k for k in (e - 1, e, e + 1) for m in (1, 2, 5)]
+    return max(v for v in series if v <= x) if down else min(v for v in series if v >= x)
+
+
 def dot_panel(ax, agg, meta, scenario, metric, baseline, log=False, pct=False, labels=True):
     pols = ordered(agg, meta, scenario)
     ys = list(range(len(pols)))[::-1]
@@ -103,6 +110,12 @@ def dot_panel(ax, agg, meta, scenario, metric, baseline, log=False, pct=False, l
         ax.set_yticklabels([])
     if log:
         ax.set_xscale("log")
+        if max(vals) / min(vals) < 100:  # under two decades: 1-2-5 ticks, axis widened to the next tick on each side
+            ax.xaxis.set_major_locator(LogLocator(base=10, subs=(1.0, 2.0, 5.0)))
+            lo_v, hi_v = ax.get_xlim()
+            ax.set_xlim(step125(lo_v, down=True), step125(hi_v, down=False))
+        else:  # wider: a label at every power of ten in view
+            ax.xaxis.set_major_locator(LogLocator(base=10, numticks=12))
         ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}"))
         ax.xaxis.set_minor_formatter(NullFormatter())
     ax.grid(axis="x", color=GRID, lw=0.8, zorder=0)
@@ -112,7 +125,7 @@ def dot_panel(ax, agg, meta, scenario, metric, baseline, log=False, pct=False, l
 
 def save(fig, out, name):
     path = os.path.join(out, name)
-    fig.savefig(path, dpi=110, bbox_inches="tight")
+    fig.savefig(path, dpi=110, bbox_inches="tight", metadata={"Software": None})  # no tool version in the PNG
     plt.close(fig)
     size = os.path.getsize(path)
     if size >= 300 * 1024:
@@ -124,16 +137,16 @@ def fig_routing(agg, meta, out, baseline):
     scs = scenarios_of(meta, "routing")
     if not scs:
         return
-    cols = 4
+    cols = min(2, len(scs))  # two columns keep the text legible in an 880 px README column
     rows = math.ceil(len(scs) / cols)
-    fig, axes = plt.subplots(rows, cols, figsize=(13, 2.7 * rows + 0.6), squeeze=False)
+    fig, axes = plt.subplots(rows, cols, figsize=(max(4.4 * cols, 6.6), 2.7 * rows + 1.0), squeeze=False)
     for i, sc in enumerate(scs):
         ax = axes[i // cols][i % cols]
         dot_panel(ax, agg, meta, sc, "J", baseline, log=True, labels=(i % cols == 0))
         ax.set_title(sc, loc="left")
     for j in range(len(scs), rows * cols):
         axes[j // cols][j % cols].axis("off")
-    fig.suptitle("Routing (simulated, assumed parameters): mean J ± 95% CI over 20 evaluation seeds (log axis where the range is wide), lower is better",
+    fig.suptitle("Routing (simulated, assumed parameters): mean J ± 95% CI over 20 evaluation seeds\n(log axis where the range is wide), lower is better",
                  x=0.01, ha="left", fontsize=10, color=INK)
     fig.tight_layout()
     save(fig, out, "routing_J.png")
@@ -143,7 +156,18 @@ def fig_family_metrics(agg, meta, out, family, baseline, metrics, fname, title):
     scs = scenarios_of(meta, family)
     if not scs:
         return
-    fig, axes = plt.subplots(len(scs), len(metrics), figsize=(3.3 * len(metrics) + 1.6, 2.3 * len(scs) + 0.6), squeeze=False)
+    if len(scs) == 1:  # one scenario: a 2 x 2 grid of metrics instead of a wide strip
+        fig, axes = plt.subplots(2, 2, figsize=(9.0, 5.4), squeeze=False)
+        for j, (metric, label, log, pct) in enumerate(metrics):
+            ax = axes[j // 2][j % 2]
+            dot_panel(ax, agg, meta, scs[0], metric, baseline, log=log, pct=pct, labels=(j % 2 == 0))
+            ax.set_title(label, loc="left")
+        axes[0][0].set_ylabel(scs[0], color=INK, fontweight="bold")
+        fig.suptitle(title, x=0.01, ha="left", fontsize=10, color=INK)
+        fig.tight_layout()
+        save(fig, out, fname)
+        return
+    fig, axes = plt.subplots(len(scs), len(metrics), figsize=(1.95 * len(metrics) + 1.8, 2.3 * len(scs) + 0.6), squeeze=False)
     for i, sc in enumerate(scs):
         for j, (metric, label, log, pct) in enumerate(metrics):
             ax = axes[i][j]
@@ -157,6 +181,38 @@ def fig_family_metrics(agg, meta, out, family, baseline, metrics, fname, title):
     save(fig, out, fname)
 
 
+# README versions: one scenario each, at most about 880 px wide, so that the text stays at 14 px or more
+# and the titles at 16 px or more in GitHub's 880 px column
+README_FONT = {"font.size": 10, "axes.titlesize": 11.5, "axes.labelsize": 11.5, "xtick.labelsize": 10, "ytick.labelsize": 10}
+
+
+def fig_readme_routing(agg, meta, out, scenario, baseline):
+    if (scenario, "base", baseline) not in agg:
+        return
+    with plt.rc_context(README_FONT):
+        fig, ax = plt.subplots(figsize=(7.4, 3.9))
+        dot_panel(ax, agg, meta, scenario, "J", baseline, log=True)
+        ax.set_title(f"{scenario}: mean J ± 95% CI over 20 evaluation seeds", loc="left")
+        ax.set_xlabel("mean J (lower is better)")
+        fig.suptitle("Routing (simulated, assumed parameters)", x=0.01, ha="left", fontsize=11.5, color=INK)
+        fig.tight_layout()
+        save(fig, out, "readme_routing_J.png")
+
+
+def fig_readme_family(agg, meta, out, scenario, baseline, metrics, fname, title):
+    if (scenario, "base", baseline) not in agg:
+        return
+    with plt.rc_context(README_FONT):
+        fig, axes = plt.subplots(2, 2, figsize=(7.6, 5.6), squeeze=False)
+        for j, (metric, label, log, pct) in enumerate(metrics):
+            ax = axes[j // 2][j % 2]
+            dot_panel(ax, agg, meta, scenario, metric, baseline, log=log, pct=pct, labels=(j % 2 == 0))
+            ax.set_title(label, loc="left")
+        fig.suptitle(title, x=0.01, ha="left", fontsize=11.5, color=INK)
+        fig.tight_layout()
+        save(fig, out, fname)
+
+
 def fig_sensitivity(sens, out):
     if not sens:
         return
@@ -164,9 +220,9 @@ def fig_sensitivity(sens, out):
     for r in sens:
         if r["scenario"] not in scs:
             scs.append(r["scenario"])
-    fig, axes = plt.subplots(1, len(scs), figsize=(5.2 * len(scs), 2.8), squeeze=False)
+    fig, axes = plt.subplots(len(scs), 1, figsize=(7.8, 2.6 * len(scs) + 0.6), squeeze=False)  # stacked: legible at 880 px
     for i, sc in enumerate(scs):
-        ax = axes[0][i]
+        ax = axes[i][0]
         rows = [r for r in sens if r["scenario"] == sc]
         ys = list(range(len(rows)))[::-1]
         for y, r in zip(ys, rows):
@@ -174,7 +230,7 @@ def fig_sensitivity(sens, out):
             ax.plot([0, tau], [y, y], color=BLUE, lw=2, solid_capstyle="round")
             ax.plot(tau, y, "o", ms=6, color=BLUE)
             note = "top policy kept" if r["top_same"] == "true" else f"top: {r['top_policy']}"
-            ax.text(1.04, y, f"{note}; verdicts kept {r['verdicts_same']}/{r['verdicts_total']}", va="center", fontsize=7.5, color=INK2,
+            ax.text(1.04, y, f"{note}; verdicts kept {r['verdicts_same']}/{r['verdicts_total']}", va="center", color=INK2,
                     transform=ax.get_yaxis_transform())
         ax.set_yticks(ys)
         ax.set_yticklabels([r["variant"] for r in rows])
@@ -200,7 +256,7 @@ def fmt(m, ci, digits=2, pct=False):
 
 def table(agg, meta, paired, manifest, out, families):
     lines = [
-        "<!-- generated by scripts/plot_results.py from benchmarks/results; do not edit by hand -->",
+        f"<!-- generated by scripts/plot_results.py from {SOURCE}; do not edit by hand -->",
         f"Simulated, assumed parameters. Commit `{manifest['commit'][:7]}`, config `{manifest['config_sha256'][:12]}`, "
         f"{len(manifest['seeds'].get('evaluation', []))} evaluation seeds, {manifest['go_version']}, {manifest['hardware']}. "
         "Mean ± 95% t-interval over seeds; W/T/L = per-seed wins/ties/losses in J against the family baseline (tie: |ΔJ| ≤ 1%); "
@@ -235,7 +291,7 @@ VERDICT = {"better": "✓", "worse": "✗", "no_difference": "="}
 def summary(agg, meta, paired, families):
     """Condensed tables: mean J per policy (rows) and scenario (columns), with
     the paired verdict against the family baseline."""
-    lines = ["<!-- generated by scripts/plot_results.py from benchmarks/results; do not edit by hand -->",
+    lines = [f"<!-- generated by scripts/plot_results.py from {SOURCE}; do not edit by hand -->",
              "Mean J over 20 evaluation seeds (lower is better). ✓ / ✗ / = : better / worse / no difference "
              "than the family baseline (paired 95% interval of ΔJ). Oracles are references, not deployable. "
              "Simulated, assumed parameters.", ""]
@@ -280,8 +336,9 @@ def decision_cost(path):
         v = float(parts[2])
         rows[key][n] = min(v, rows[key].get(n, v))  # minimum over repeated runs
     lines = ["<!-- generated by scripts/plot_results.py from benchmarks/results/microbench.txt; do not edit by hand -->",
-             "Time per routing decision in ns (`go test -bench`, real CPU time of the policy code; Intel Core i9-14900KF, "
-             "Windows 11, go1.27.1; minimum of 5 runs, measured while unrelated jobs shared the machine). `Route`: the policy alone on a prepared view. `Dispatch`: the full dispatcher path "
+             "Time per routing decision in ns (`go test -bench`, real CPU time of the policy code, not simulated; x86-64 desktop CPU "
+             "with 32 logical CPUs, Windows 11, toolchain in `benchmarks/results/microbench.txt`; minimum of 5 runs, indicative only). "
+             "`Route`: the policy alone on a prepared view. `Dispatch`: the full dispatcher path "
              "(eligible-view construction from the registry, snapshot lookup, policy, completion).", "",
              "| benchmark | policy | 8 replicas | 64 replicas | 512 replicas |", "|---|---|---|---|---|"]
     for key in order:
@@ -304,13 +361,19 @@ def splice(path, marker, content):
     print(f"updated {path} [{marker}]")
 
 
+# results folder named in the generated headers (set from --results)
+SOURCE = "benchmarks/results"
+
+
 def main():
+    global SOURCE
     ap = argparse.ArgumentParser()
     ap.add_argument("--results", default="benchmarks/results")
     ap.add_argument("--out", default="docs/figures")
     ap.add_argument("--no-splice", action="store_true", help="do not update the README tables")
     ap.add_argument("--marker", default="results-summary", help="README marker that receives the summary table")
     args = ap.parse_args()
+    SOURCE = args.results.replace("\\", "/").rstrip("/")
     os.makedirs(args.out, exist_ok=True)
     agg, meta, paired, sens, manifest = load(args.results)
     fig_routing(agg, meta, args.out, "least_outstanding")
@@ -327,6 +390,11 @@ def main():
                         ("rejected_rate", "rejected (%)", False, True), ("ttft_p95", "P95 TTFT (s, log)", True, False)],
                        "overload.png", "Overload with and without admission control (simulated): mean ± 95% CI")
     fig_sensitivity(sens, args.out)
+    fig_readme_routing(agg, meta, args.out, "r-steady90-short", "least_outstanding")
+    fig_readme_family(agg, meta, args.out, "s-bursty-short", "threshold_cooldown",
+                      [("J", "J (log)", True, False), ("violation_rate", "SLO violations (%)", False, True),
+                       ("ttft_p95", "P95 TTFT (s, log)", True, False), ("gpu_hours", "GPU-hours", False, False)],
+                      "readme_scaling.png", "Scaling in s-bursty-short (simulated, assumed parameters): mean ± 95% CI")
     fams = [("routing", "least_outstanding"), ("scaling", "threshold_cooldown"), ("capacity", "static_partition"), ("overload", "none")]
     table(agg, meta, paired, manifest, args.out, fams + [("sample", "least_outstanding")])
     summ = summary(agg, meta, paired, fams)
